@@ -26,7 +26,7 @@ const StatisticsCard: React.FC<StatisticsCardProps> = ({ statistics }) => {
               <span className="font-bold">{statistics.totalQuestions1}</span>
             </div>
             <div className="flex justify-between rtl">
-              <span className="text-muted-foreground">إجمالي الأسئلة في المجموعة ٢:</span>
+              <span className="text-muted-foreground">إجمالي الأسئلة في المجموعة ٢ (المرجعية):</span>
               <span className="font-bold">{statistics.totalQuestions2}</span>
             </div>
             <div className="flex justify-between rtl">

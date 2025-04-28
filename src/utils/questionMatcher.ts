@@ -71,7 +71,8 @@ function compareQuestions(q1: Question, q2: Question): boolean {
 }
 
 /**
- * Match questions from set 1 against set 2
+ * Match questions from set 1 against set 2 (reference set)
+ * Focus is on identifying matches for questions in set 1
  */
 export function matchQuestions(set1: Question[], set2: Question[]): MatchResult[] {
   const results: MatchResult[] = [];
@@ -79,15 +80,14 @@ export function matchQuestions(set1: Question[], set2: Question[]): MatchResult[
   // For each question in set 1
   for (const q1 of set1) {
     let matchCount = 0;
-    let matchedQuestion: Question | null = null;
-    let matchDetails = "";
+    let matchedQuestions: Question[] = [];
 
-    // Compare with each question in set 2
+    // Compare with each question in set 2 (reference set)
     for (const q2 of set2) {
       // Check standard comparison
       if (compareQuestions(q1, q2)) {
         matchCount++;
-        matchedQuestion = q2;
+        matchedQuestions.push(q2);
         continue;
       }
 
@@ -95,8 +95,7 @@ export function matchQuestions(set1: Question[], set2: Question[]): MatchResult[
       const modifiedQ1 = handleExtraOptionCase(q1, q2);
       if (q1 !== modifiedQ1 && compareQuestions(modifiedQ1, q2)) {
         matchCount++;
-        matchedQuestion = q2;
-        matchDetails = "Matched after removing an extra option from Set 1";
+        matchedQuestions.push(q2);
       }
     }
 
@@ -113,10 +112,10 @@ export function matchQuestions(set1: Question[], set2: Question[]): MatchResult[
     // Add to results
     results.push({
       question1: q1,
-      question2: matchedQuestion,
+      question2: matchedQuestions.length > 0 ? matchedQuestions[0] : null,
       matchCount,
       matchStatus: status,
-      matchDetails
+      matchDetails: matchCount > 1 ? `يطابق ${matchCount} أسئلة من المجموعة الثانية (المرجعية)` : ""
     });
   }
 

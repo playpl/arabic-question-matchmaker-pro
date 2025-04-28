@@ -46,8 +46,8 @@ const Index = () => {
 
       if (questions2.length === 0) {
         toast({
-          title: "المجموعة الثانية فارغة",
-          description: "يرجى إدخال أسئلة في المجموعة الثانية",
+          title: "المجموعة الثانية (المرجعية) فارغة",
+          description: "يرجى إدخال أسئلة في المجموعة الثانية (المرجعية)",
           variant: "destructive",
         });
         return;
@@ -65,7 +65,7 @@ const Index = () => {
       
       toast({
         title: "تم التحليل بنجاح",
-        description: `تم تحليل ${questions1.length} سؤال من المجموعة الأولى و ${questions2.length} سؤال من المجموعة الثانية.`,
+        description: `تم تحليل ${questions1.length} سؤال من المجموعة الأولى و ${questions2.length} سؤال من المجموعة الثانية (المرجعية).`,
       });
     } catch (error) {
       console.error("Error analyzing questions:", error);

@@ -39,7 +39,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results }) => {
             {singleMatches.length === 0 ? (
               <Alert className="rtl">
                 <AlertDescription>
-                  لا توجد أسئلة من المجموعة الأولى تطابق سؤالًا واحدًا بالضبط من المجموعة الثانية.
+                  لا توجد أسئلة من المجموعة الأولى تطابق سؤالًا واحدًا بالضبط من المجموعة الثانية (المرجعية).
                 </AlertDescription>
               </Alert>
             ) : (
@@ -61,7 +61,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results }) => {
             {multipleMatches.length === 0 ? (
               <Alert className="rtl">
                 <AlertDescription>
-                  لا توجد أسئلة من المجموعة الأولى تطابق أكثر من سؤال واحد من المجموعة الثانية.
+                  لا توجد أسئلة من المجموعة الأولى تطابق أكثر من سؤال واحد من المجموعة الثانية (المرجعية).
                 </AlertDescription>
               </Alert>
             ) : (
@@ -71,7 +71,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results }) => {
                   question={result.question1}
                   isMatched={true}
                   matchedQuestion={result.question2}
-                  matchDetails={`يطابق ${result.matchCount} أسئلة من المجموعة الثانية`}
+                  matchDetails={result.matchDetails}
                 />
               ))
             )}
@@ -83,7 +83,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results }) => {
             {noMatches.length === 0 ? (
               <Alert className="rtl">
                 <AlertDescription>
-                  جميع الأسئلة من المجموعة الأولى لها مطابقات في المجموعة الثانية.
+                  جميع الأسئلة من المجموعة الأولى لها مطابقات في المجموعة الثانية (المرجعية).
                 </AlertDescription>
               </Alert>
             ) : (

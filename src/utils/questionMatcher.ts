@@ -2,6 +2,18 @@
 import { Question, Option, MatchResult, MatchStatus, MatchStatistics } from "../types/questions";
 
 /**
+ * Normalize Arabic text by replacing variant forms of characters with their standard form
+ */
+function normalizeArabicText(text: string): string {
+  return text
+    .replace(/[أإآ]/g, 'ا') // Normalize Alef variations
+    .replace(/[ىي]/g, 'ي')  // Normalize Yaa variations
+    .replace(/ؤ/g, 'و')     // Normalize Waw variations
+    .replace(/ة/g, 'ه')     // Normalize Taa Marbouta to Haa
+    .replace(/[ئ]/g, 'ي');  // Normalize Hamza on Yaa to Yaa
+}
+
+/**
  * Check if two questions have the same correct answer
  */
 function hasSameCorrectAnswer(q1: Question, q2: Question): boolean {
@@ -9,14 +21,23 @@ function hasSameCorrectAnswer(q1: Question, q2: Question): boolean {
   const correctOption2 = q2.options.find(opt => opt.isCorrect);
   
   if (!correctOption1 || !correctOption2) return false;
-  return correctOption1.text === correctOption2.text;
+  
+  // Normalize Arabic text before comparison
+  const normalizedText1 = normalizeArabicText(correctOption1.text);
+  const normalizedText2 = normalizeArabicText(correctOption2.text);
+  
+  return normalizedText1 === normalizedText2;
 }
 
 /**
  * Check if two questions have the same question text
  */
 function hasSameQuestionText(q1: Question, q2: Question): boolean {
-  return q1.text === q2.text;
+  // Normalize Arabic text before comparison
+  const normalizedText1 = normalizeArabicText(q1.text);
+  const normalizedText2 = normalizeArabicText(q2.text);
+  
+  return normalizedText1 === normalizedText2;
 }
 
 /**
@@ -32,7 +53,7 @@ function handleExtraOptionCase(q1: Question, q2: Question): Question {
 
   // Find the extra option (all options in q2 must exist in q1, one will be left)
   const extraOptionIndex = modifiedQ1.options.findIndex(opt1 => {
-    return !q2.options.some(opt2 => opt2.text === opt1.text);
+    return !q2.options.some(opt2 => normalizeArabicText(opt2.text) === normalizeArabicText(opt1.text));
   });
 
   // If we found an extra option, remove it
@@ -52,7 +73,8 @@ function hasAllIncorrectOptions(q1: Question, q2: Question): boolean {
   
   // Check if all of q2's incorrect options exist in q1
   return incorrectOptions2.every(opt2 => {
-    return q1.options.some(opt1 => opt1.text === opt2.text);
+    const normalizedOpt2Text = normalizeArabicText(opt2.text);
+    return q1.options.some(opt1 => normalizeArabicText(opt1.text) === normalizedOpt2Text);
   });
 }
 

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MatchResult, MatchStatus } from "@/types/questions";
@@ -6,13 +5,16 @@ import QuestionDisplayCard from "./QuestionDisplayCard";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 
 interface ResultsDisplayProps {
   results: MatchResult[] | null;
   onDeleteMatch?: (matchResultIndex: number) => void;
+  onDeleteAllMatches?: () => void;
 }
 
-const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, onDeleteMatch }) => {
+const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, onDeleteMatch, onDeleteAllMatches }) => {
   const { toast } = useToast();
 
   if (!results || results.length === 0) {
@@ -33,6 +35,16 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, onDeleteMatch 
     }
   };
 
+  const handleDeleteAllMatches = () => {
+    if (onDeleteAllMatches) {
+      onDeleteAllMatches();
+      toast({
+        title: "تم حذف جميع المطابقات",
+        description: "تم حذف جميع الأسئلة المطابقة من المجموعة الثانية (المرجعية).",
+      });
+    }
+  };
+
   return (
     <div className="mt-6">
       <Tabs defaultValue="single" className="w-full">
@@ -49,6 +61,18 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, onDeleteMatch 
         </TabsList>
         
         <TabsContent value="single">
+          {singleMatches.length > 0 && (
+            <div className="mb-4 flex justify-end">
+              <Button 
+                variant="destructive"
+                onClick={handleDeleteAllMatches}
+                className="rtl flex gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>حذف كل المطابقات من المجموعة الثانية</span>
+              </Button>
+            </div>
+          )}
           <ScrollArea className="h-[500px] pr-4">
             {singleMatches.length === 0 ? (
               <Alert className="rtl">
@@ -85,7 +109,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, onDeleteMatch 
             {multipleMatches.length === 0 ? (
               <Alert className="rtl">
                 <AlertDescription>
-                  لا توجد أسئلة من المجموعة الأولى تطابق أكثر من سؤال واحد من المجموعة الثانية (المرجعية).
+                  لا توجد أسئلة من المجموعة الأول�� تطابق أكثر من سؤال واحد من المجموعة الثانية (المرجعية).
                 </AlertDescription>
               </Alert>
             ) : (

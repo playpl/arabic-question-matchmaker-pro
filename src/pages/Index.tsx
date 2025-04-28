@@ -8,7 +8,7 @@ import ResultsDisplay from "@/components/ResultsDisplay";
 import Footer from "@/components/Footer";
 import { parseQuestions } from "@/utils/questionParser";
 import { matchQuestions, calculateStatistics } from "@/utils/questionMatcher";
-import { Question, MatchResult, MatchStatistics } from "@/types/questions";
+import { Question, MatchResult, MatchStatistics, MatchStatus } from "@/types/questions";
 
 const Index = () => {
   const [set1Text, setSet1Text] = useState("");
@@ -113,6 +113,47 @@ const Index = () => {
     }
   };
 
+  const handleDeleteAllMatches = () => {
+    if (results) {
+      // Get all questions with single matches
+      const singleMatches = results.filter(r => r.matchStatus === MatchStatus.SingleMatch);
+      
+      // Extract all question2 texts that need to be deleted
+      const textsToDelete = singleMatches
+        .filter(match => match.question2 !== null)
+        .map(match => match.question2!.text);
+      
+      // Remove all matched questions from set 2
+      const updatedQuestions2 = questions2.filter(q => !textsToDelete.includes(q.text));
+      
+      // Update questions2 and the set2Text
+      setQuestions2(updatedQuestions2);
+      
+      // Regenerate the text representation for set2Text
+      const updatedSet2Text = updatedQuestions2.map(q => {
+        const optionsText = q.options.map(opt => 
+          `${opt.text}${opt.isCorrect ? '*' : ''}`
+        ).join('\n');
+        return `==\n${q.text}\n\n${optionsText}\n`;
+      }).join('');
+      
+      setSet2Text(updatedSet2Text);
+      
+      // Rerun analysis
+      const newResults = matchQuestions(questions1, updatedQuestions2);
+      setResults(newResults);
+      
+      // Update statistics
+      const newStats = calculateStatistics(newResults);
+      setStatistics(newStats);
+      
+      toast({
+        title: "تم حذف جميع المطابقات",
+        description: `تم حذف ${textsToDelete.length} سؤال من المجموعة الثانية (المرجعية) وإعادة التحليل.`,
+      });
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <Header />
@@ -134,6 +175,7 @@ const Index = () => {
         <ResultsDisplay 
           results={results} 
           onDeleteMatch={handleDeleteMatch}
+          onDeleteAllMatches={handleDeleteAllMatches}
         />
       )}
       

@@ -1,4 +1,3 @@
-
 import { Question, Option, MatchResult, MatchStatus, MatchStatistics } from "../types/questions";
 
 /**
@@ -14,6 +13,26 @@ function normalizeArabicText(text: string): string {
 }
 
 /**
+ * Process text to ignore brackets but keep their content
+ * For example, "السؤال (مهم)" becomes "السؤال مهم"
+ */
+function processText(text: string): string {
+  // First normalize Arabic text
+  const normalized = normalizeArabicText(text);
+  
+  // Replace brackets with spaces, keeping the content
+  return normalized
+    .replace(/\(/g, ' ')  // Replace opening brackets with space
+    .replace(/\)/g, ' ')  // Replace closing brackets with space
+    .replace(/\[/g, ' ')  // Replace opening square brackets with space
+    .replace(/\]/g, ' ')  // Replace closing square brackets with space
+    .replace(/\{/g, ' ')  // Replace opening curly brackets with space
+    .replace(/\}/g, ' ')  // Replace closing curly brackets with space
+    .replace(/\s+/g, ' ') // Replace multiple spaces with a single space
+    .trim();              // Remove leading and trailing spaces
+}
+
+/**
  * Check if two questions have the same correct answer
  */
 function hasSameCorrectAnswer(q1: Question, q2: Question): boolean {
@@ -22,22 +41,22 @@ function hasSameCorrectAnswer(q1: Question, q2: Question): boolean {
   
   if (!correctOption1 || !correctOption2) return false;
   
-  // Normalize Arabic text before comparison
-  const normalizedText1 = normalizeArabicText(correctOption1.text);
-  const normalizedText2 = normalizeArabicText(correctOption2.text);
+  // Process text to normalize and ignore brackets
+  const processedText1 = processText(correctOption1.text);
+  const processedText2 = processText(correctOption2.text);
   
-  return normalizedText1 === normalizedText2;
+  return processedText1 === processedText2;
 }
 
 /**
  * Check if two questions have the same question text
  */
 function hasSameQuestionText(q1: Question, q2: Question): boolean {
-  // Normalize Arabic text before comparison
-  const normalizedText1 = normalizeArabicText(q1.text);
-  const normalizedText2 = normalizeArabicText(q2.text);
+  // Process text to normalize and ignore brackets
+  const processedText1 = processText(q1.text);
+  const processedText2 = processText(q2.text);
   
-  return normalizedText1 === normalizedText2;
+  return processedText1 === processedText2;
 }
 
 /**
@@ -53,7 +72,7 @@ function handleExtraOptionCase(q1: Question, q2: Question): Question {
 
   // Find the extra option (all options in q2 must exist in q1, one will be left)
   const extraOptionIndex = modifiedQ1.options.findIndex(opt1 => {
-    return !q2.options.some(opt2 => normalizeArabicText(opt2.text) === normalizeArabicText(opt1.text));
+    return !q2.options.some(opt2 => processText(opt2.text) === processText(opt1.text));
   });
 
   // If we found an extra option, remove it
@@ -73,8 +92,8 @@ function hasAllIncorrectOptions(q1: Question, q2: Question): boolean {
   
   // Check if all of q2's incorrect options exist in q1
   return incorrectOptions2.every(opt2 => {
-    const normalizedOpt2Text = normalizeArabicText(opt2.text);
-    return q1.options.some(opt1 => normalizeArabicText(opt1.text) === normalizedOpt2Text);
+    const processedOpt2Text = processText(opt2.text);
+    return q1.options.some(opt1 => processText(opt1.text) === processedOpt2Text);
   });
 }
 

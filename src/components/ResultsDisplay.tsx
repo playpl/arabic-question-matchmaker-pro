@@ -5,12 +5,16 @@ import { MatchResult, MatchStatus } from "@/types/questions";
 import QuestionDisplayCard from "./QuestionDisplayCard";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
 
 interface ResultsDisplayProps {
   results: MatchResult[] | null;
+  onDeleteMatch?: (matchResultIndex: number) => void;
 }
 
-const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results }) => {
+const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, onDeleteMatch }) => {
+  const { toast } = useToast();
+
   if (!results || results.length === 0) {
     return null;
   }
@@ -18,6 +22,16 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results }) => {
   const singleMatches = results.filter(r => r.matchStatus === MatchStatus.SingleMatch);
   const multipleMatches = results.filter(r => r.matchStatus === MatchStatus.MultipleMatches);
   const noMatches = results.filter(r => r.matchStatus === MatchStatus.NoMatch);
+
+  const handleDeleteMatch = (resultIndex: number) => {
+    if (onDeleteMatch) {
+      onDeleteMatch(resultIndex);
+      toast({
+        title: "تم حذف المطابقة",
+        description: "تم حذف السؤال المطابق من المجموعة الثانية (المرجعية).",
+      });
+    }
+  };
 
   return (
     <div className="mt-6">
@@ -43,15 +57,25 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results }) => {
                 </AlertDescription>
               </Alert>
             ) : (
-              singleMatches.map((result, idx) => (
-                <QuestionDisplayCard
-                  key={idx}
-                  question={result.question1}
-                  isMatched={true}
-                  matchedQuestion={result.question2}
-                  matchDetails={result.matchDetails}
-                />
-              ))
+              singleMatches.map((result, idx) => {
+                // Find the index in the original results array
+                const originalIndex = results.findIndex(r => 
+                  r.question1.text === result.question1.text && 
+                  r.matchStatus === MatchStatus.SingleMatch
+                );
+                
+                return (
+                  <QuestionDisplayCard
+                    key={idx}
+                    question={result.question1}
+                    isMatched={true}
+                    matchedQuestion={result.question2}
+                    matchDetails={result.matchDetails}
+                    showDeleteButton={true}
+                    onDeleteMatch={() => handleDeleteMatch(originalIndex)}
+                  />
+                );
+              })
             )}
           </ScrollArea>
         </TabsContent>

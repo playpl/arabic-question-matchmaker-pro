@@ -3,19 +3,25 @@ import React from "react";
 import { Question, Option } from "@/types/questions";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 
 interface QuestionDisplayCardProps {
   question: Question;
   isMatched?: boolean;
   matchedQuestion?: Question | null;
   matchDetails?: string;
+  onDeleteMatch?: () => void;
+  showDeleteButton?: boolean;
 }
 
 const QuestionDisplayCard: React.FC<QuestionDisplayCardProps> = ({
   question,
   isMatched = false,
   matchedQuestion = null,
-  matchDetails = ""
+  matchDetails = "",
+  onDeleteMatch,
+  showDeleteButton = false
 }) => {
   return (
     <Card className={cn(
@@ -43,7 +49,20 @@ const QuestionDisplayCard: React.FC<QuestionDisplayCardProps> = ({
           
           {matchedQuestion && (
             <div className="mt-6 border-t pt-4">
-              <div className="text-sm font-medium mb-2 rtl">السؤال المطابق من المجموعة الثانية:</div>
+              <div className="flex justify-between items-center mb-2">
+                <div className="text-sm font-medium rtl">السؤال المطابق من المجموعة الثانية:</div>
+                {showDeleteButton && onDeleteMatch && (
+                  <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    onClick={onDeleteMatch}
+                    className="rtl flex gap-1"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>حذف المطابقة</span>
+                  </Button>
+                )}
+              </div>
               <div className="bg-arabicBlue/5 p-3 rounded rtl">
                 <div className="font-bold arabic-text mb-2">{matchedQuestion.text}</div>
                 <div className="space-y-1">

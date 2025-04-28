@@ -77,6 +77,42 @@ const Index = () => {
     }
   };
 
+  const handleDeleteMatch = (matchResultIndex: number) => {
+    if (results && results[matchResultIndex] && results[matchResultIndex].question2) {
+      // Get the question to delete
+      const questionToDelete = results[matchResultIndex].question2;
+      
+      // Remove the question from set 2
+      const updatedQuestions2 = questions2.filter(q => q.text !== questionToDelete?.text);
+      
+      // Update questions2 and the set2Text
+      setQuestions2(updatedQuestions2);
+      
+      // Regenerate the text representation for set2Text
+      const updatedSet2Text = updatedQuestions2.map(q => {
+        const optionsText = q.options.map(opt => 
+          `${opt.text}${opt.isCorrect ? '*' : ''}`
+        ).join('\n');
+        return `==\n${q.text}\n\n${optionsText}\n`;
+      }).join('');
+      
+      setSet2Text(updatedSet2Text);
+      
+      // Rerun analysis
+      const newResults = matchQuestions(questions1, updatedQuestions2);
+      setResults(newResults);
+      
+      // Update statistics
+      const newStats = calculateStatistics(newResults);
+      setStatistics(newStats);
+      
+      toast({
+        title: "تم حذف السؤال",
+        description: "تم حذف السؤال من المجموعة الثانية (المرجعية) وإعادة التحليل.",
+      });
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <Header />
@@ -95,7 +131,10 @@ const Index = () => {
       )}
       
       {hasAnalyzed && results && (
-        <ResultsDisplay results={results} />
+        <ResultsDisplay 
+          results={results} 
+          onDeleteMatch={handleDeleteMatch}
+        />
       )}
       
       <Footer />

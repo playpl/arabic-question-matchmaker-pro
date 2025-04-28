@@ -85,7 +85,7 @@ const Index = () => {
         set1={set1Text}
         set2={set2Text}
         onSet1Change={setSet1Text}
-        onSet2Change={set2Text}
+        onSet2Change={setSet2Text}
         onAnalyze={handleAnalyze}
         canAnalyze={canAnalyze}
       />

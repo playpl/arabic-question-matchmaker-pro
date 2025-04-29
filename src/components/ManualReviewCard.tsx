@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, memo } from "react";
 import { Question } from "@/types/questions";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -14,7 +14,8 @@ interface ManualReviewCardProps {
   onRejectMatch: (reviewQuestion: Question) => void;
 }
 
-const ManualReviewCard: React.FC<ManualReviewCardProps> = ({
+// استخدام memo لمنع إعادة التصيير غير الضرورية
+const ManualReviewCard: React.FC<ManualReviewCardProps> = memo(({
   question,
   reviewQuestion,
   onAcceptMatch,
@@ -23,27 +24,49 @@ const ManualReviewCard: React.FC<ManualReviewCardProps> = ({
   const { toast } = useToast();
   const [decision, setDecision] = useState<"match" | "no_match" | null>(null);
 
+  // تحسين الأداء بتخزين الوظائف في الذاكرة
   const handleAccept = useCallback(() => {
     setDecision("match");
-    onAcceptMatch(reviewQuestion);
-    toast({
-      title: "تمت المطابقة",
-      description: "تم اعتبار الأسئلة متطابقة."
-    });
+    // تأخير الإشعار والمعالجة لتحسين الأداء
+    setTimeout(() => {
+      onAcceptMatch(reviewQuestion);
+      toast({
+        title: "تمت المطابقة",
+        description: "تم اعتبار الأسئلة متطابقة."
+      });
+    }, 300);
   }, [onAcceptMatch, reviewQuestion, toast]);
 
   const handleReject = useCallback(() => {
     setDecision("no_match");
-    onRejectMatch(reviewQuestion);
-    toast({
-      title: "تم الرفض",
-      description: "تم اعتبار الأسئلة غير متطابقة."
-    });
+    // تأخير الإشعار والمعالجة لتحسين الأداء
+    setTimeout(() => {
+      onRejectMatch(reviewQuestion);
+      toast({
+        title: "تم الرفض",
+        description: "تم اعتبار الأسئلة غير متطابقة."
+      });
+    }, 300);
   }, [onRejectMatch, reviewQuestion, toast]);
+
+  // تقسيم تصيير الخيارات إلى مكونات منفصلة لتحسين الأداء
+  const renderOptions = useCallback((options, isCorrect) => {
+    return options.map((option, idx) => (
+      <div 
+        key={idx} 
+        className={cn(
+          "p-2 rounded arabic-text",
+          option.isCorrect ? "bg-arabicBlue/20 font-bold" : "bg-gray-50"
+        )}
+      >
+        {option.text} {option.isCorrect && <span className="text-arabicBlue">✓</span>}
+      </div>
+    ));
+  }, []);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <Card className="w-full max-w-4xl max-h-[90vh] overflow-auto border-2 border-yellow-400/40 animate-fade-in">
+      <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden border-2 border-yellow-400/40">
         <CardContent className="p-0">
           {/* العنوان */}
           <div className="bg-yellow-400/20 p-4 rtl border-b border-yellow-400/30">
@@ -51,24 +74,14 @@ const ManualReviewCard: React.FC<ManualReviewCardProps> = ({
           </div>
 
           {/* محتوى السؤال الأصلي */}
-          <div className="p-4 space-y-4">
+          <div className="p-4 space-y-4 overflow-y-auto max-h-[calc(90vh-200px)]">
             <div className="bg-arabicBlue/10 p-4 rounded-lg rtl">
               <h3 className="font-bold text-lg mb-2 arabic-text text-arabicBlue">السؤال الأصلي:</h3>
               <p className="font-bold arabic-text text-lg">{question.text}</p>
               
               <div className="mt-4 space-y-2">
                 <h4 className="font-semibold arabic-text">الخيارات:</h4>
-                {question.options.map((option, idx) => (
-                  <div 
-                    key={idx} 
-                    className={cn(
-                      "p-2 rounded arabic-text",
-                      option.isCorrect ? "bg-arabicBlue/20 font-bold" : "bg-gray-50"
-                    )}
-                  >
-                    {option.text} {option.isCorrect && <span className="text-arabicBlue">✓</span>}
-                  </div>
-                ))}
+                {renderOptions(question.options)}
               </div>
             </div>
             
@@ -79,17 +92,7 @@ const ManualReviewCard: React.FC<ManualReviewCardProps> = ({
               
               <div className="mt-4 space-y-2">
                 <h4 className="font-semibold arabic-text">الخيارات:</h4>
-                {reviewQuestion.options.map((option, idx) => (
-                  <div 
-                    key={idx} 
-                    className={cn(
-                      "p-2 rounded arabic-text",
-                      option.isCorrect ? "bg-arabicBlue/20 font-bold" : "bg-gray-50"
-                    )}
-                  >
-                    {option.text} {option.isCorrect && <span className="text-arabicBlue">✓</span>}
-                  </div>
-                ))}
+                {renderOptions(reviewQuestion.options)}
               </div>
             </div>
 
@@ -106,7 +109,7 @@ const ManualReviewCard: React.FC<ManualReviewCardProps> = ({
                     "w-full sm:w-64 h-16 text-lg gap-3 transition-all duration-300",
                     decision === "match" 
                       ? "bg-green-500 border-4 border-green-700" 
-                      : "bg-green-500 hover:bg-green-600 hover:scale-105"
+                      : "bg-green-500 hover:bg-green-600"
                   )}
                 >
                   <Check className="w-6 h-6" />
@@ -121,7 +124,7 @@ const ManualReviewCard: React.FC<ManualReviewCardProps> = ({
                     "w-full sm:w-64 h-16 text-lg gap-3 transition-all duration-300",
                     decision === "no_match" 
                       ? "bg-red-500 border-4 border-red-700" 
-                      : "bg-red-500 hover:bg-red-600 hover:scale-105"
+                      : "bg-red-500 hover:bg-red-600"
                   )}
                   variant="destructive"
                 >
@@ -143,6 +146,6 @@ const ManualReviewCard: React.FC<ManualReviewCardProps> = ({
       </Card>
     </div>
   );
-};
+});
 
 export default ManualReviewCard;

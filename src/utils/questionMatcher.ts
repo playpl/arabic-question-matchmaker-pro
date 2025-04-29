@@ -125,6 +125,22 @@ function compareQuestions(q1: Question, q2: Question): boolean {
 }
 
 /**
+ * Check if a question needs manual review
+ * (meets all criteria except matching question text)
+ */
+function needsManualReview(q1: Question, q2: Question): boolean {
+  // Check if they have same correct answer
+  if (!hasSameCorrectAnswer(q1, q2)) return false;
+  
+  // Check if all incorrect options from q2 exist in q1
+  if (!hasAllIncorrectOptions(q1, q2)) return false;
+  
+  // Check if they DON'T have same question text
+  // If texts don't match but everything else does, it needs manual review
+  return !hasSameQuestionText(q1, q2);
+}
+
+/**
  * Match questions from set 1 against set 2 (reference set)
  * Focus is on identifying matches for questions in set 1
  */
@@ -135,6 +151,7 @@ export function matchQuestions(set1: Question[], set2: Question[]): MatchResult[
   for (const q1 of set1) {
     let matchCount = 0;
     let matchedQuestions: Question[] = [];
+    let manualReviewQuestions: Question[] = [];
 
     // Compare with each question in set 2 (reference set)
     for (const q2 of set2) {
@@ -150,12 +167,20 @@ export function matchQuestions(set1: Question[], set2: Question[]): MatchResult[
       if (q1 !== modifiedQ1 && compareQuestions(modifiedQ1, q2)) {
         matchCount++;
         matchedQuestions.push(q2);
+        continue;
+      }
+      
+      // Check if it needs manual review
+      if (needsManualReview(q1, q2) || needsManualReview(modifiedQ1, q2)) {
+        manualReviewQuestions.push(q2);
       }
     }
 
     // Determine match status
     let status: MatchStatus;
-    if (matchCount === 0) {
+    if (manualReviewQuestions.length > 0) {
+      status = MatchStatus.NeedsReview;
+    } else if (matchCount === 0) {
       status = MatchStatus.NoMatch;
     } else if (matchCount === 1) {
       status = MatchStatus.SingleMatch;
@@ -166,10 +191,13 @@ export function matchQuestions(set1: Question[], set2: Question[]): MatchResult[
     // Add to results
     results.push({
       question1: q1,
-      question2: matchedQuestions.length > 0 ? matchedQuestions[0] : null,
+      question2: matchCount > 0 ? matchedQuestions[0] : 
+                manualReviewQuestions.length > 0 ? manualReviewQuestions[0] : null,
       matchCount,
+      reviewQuestions: manualReviewQuestions,
       matchStatus: status,
-      matchDetails: matchCount > 1 ? `يطابق ${matchCount} أسئلة من المجموعة الثانية (المرجعية)` : ""
+      matchDetails: matchCount > 1 ? `يطابق ${matchCount} أسئلة من المجموعة الثانية (المرجعية)` : 
+                    manualReviewQuestions.length > 0 ? `يحتاج إلى مراجعة يدوية (${manualReviewQuestions.length} أسئلة محتملة)` : ""
     });
   }
 
@@ -183,6 +211,7 @@ export function calculateStatistics(matches: MatchResult[]): MatchStatistics {
   const singleMatches = matches.filter(m => m.matchStatus === MatchStatus.SingleMatch);
   const multipleMatches = matches.filter(m => m.matchStatus === MatchStatus.MultipleMatches);
   const noMatches = matches.filter(m => m.matchStatus === MatchStatus.NoMatch);
+  const needsReview = matches.filter(m => m.matchStatus === MatchStatus.NeedsReview);
   
   const totalQuestions1 = matches.length;
   const totalQuestions2 = new Set(
@@ -201,6 +230,7 @@ export function calculateStatistics(matches: MatchResult[]): MatchStatistics {
     singleMatchCount: singleMatches.length,
     multipleMatchCount: multipleMatches.length,
     noMatchCount: noMatches.length,
+    needsReviewCount: needsReview.length,
     matchPercentage
   };
 }

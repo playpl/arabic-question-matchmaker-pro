@@ -16,12 +16,14 @@ export interface MatchResult {
   matchCount: number;
   matchStatus: MatchStatus;
   matchDetails?: string;
+  reviewQuestions?: Question[]; // Questions that need manual review
 }
 
 export enum MatchStatus {
   NoMatch = "NO_MATCH",
   SingleMatch = "SINGLE_MATCH",
-  MultipleMatches = "MULTIPLE_MATCHES"
+  MultipleMatches = "MULTIPLE_MATCHES",
+  NeedsReview = "NEEDS_REVIEW"
 }
 
 export interface MatchStatistics {
@@ -30,5 +32,6 @@ export interface MatchStatistics {
   singleMatchCount: number;
   multipleMatchCount: number;
   noMatchCount: number;
+  needsReviewCount: number;
   matchPercentage: number;
 }

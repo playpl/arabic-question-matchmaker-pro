@@ -1,7 +1,9 @@
+
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MatchResult, MatchStatus } from "@/types/questions";
 import QuestionDisplayCard from "./QuestionDisplayCard";
+import ManualReviewCard from "./ManualReviewCard";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
@@ -12,9 +14,17 @@ interface ResultsDisplayProps {
   results: MatchResult[] | null;
   onDeleteMatch?: (matchResultIndex: number) => void;
   onDeleteAllMatches?: () => void;
+  onAcceptReview?: (matchResultIndex: number, reviewQuestion: any) => void;
+  onRejectReview?: (matchResultIndex: number, reviewQuestion: any) => void;
 }
 
-const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, onDeleteMatch, onDeleteAllMatches }) => {
+const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ 
+  results, 
+  onDeleteMatch, 
+  onDeleteAllMatches,
+  onAcceptReview,
+  onRejectReview
+}) => {
   const { toast } = useToast();
 
   if (!results || results.length === 0) {
@@ -24,6 +34,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, onDeleteMatch,
   const singleMatches = results.filter(r => r.matchStatus === MatchStatus.SingleMatch);
   const multipleMatches = results.filter(r => r.matchStatus === MatchStatus.MultipleMatches);
   const noMatches = results.filter(r => r.matchStatus === MatchStatus.NoMatch);
+  const needsReview = results.filter(r => r.matchStatus === MatchStatus.NeedsReview);
 
   const handleDeleteMatch = (resultIndex: number) => {
     if (onDeleteMatch) {
@@ -48,12 +59,15 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, onDeleteMatch,
   return (
     <div className="mt-6">
       <Tabs defaultValue="single" className="w-full">
-        <TabsList className="grid grid-cols-3 mb-4">
+        <TabsList className="grid grid-cols-4 mb-4">
           <TabsTrigger value="single" className="rtl">
             مطابقة واحدة ({singleMatches.length})
           </TabsTrigger>
           <TabsTrigger value="multiple" className="rtl">
             مطابقات متعددة ({multipleMatches.length})
+          </TabsTrigger>
+          <TabsTrigger value="review" className="rtl">
+            بحاجة لمراجعة ({needsReview.length})
           </TabsTrigger>
           <TabsTrigger value="none" className="rtl">
             بلا مطابقات ({noMatches.length})
@@ -109,7 +123,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, onDeleteMatch,
             {multipleMatches.length === 0 ? (
               <Alert className="rtl">
                 <AlertDescription>
-                  لا توجد أسئلة من المجموعة الأول�� تطابق أكثر من سؤال واحد من المجموعة الثانية (المرجعية).
+                  لا توجد أسئلة من المجموعة الأولى تطابق أكثر من سؤال واحد من المجموعة الثانية (المرجعية).
                 </AlertDescription>
               </Alert>
             ) : (
@@ -122,6 +136,39 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, onDeleteMatch,
                   matchDetails={result.matchDetails}
                 />
               ))
+            )}
+          </ScrollArea>
+        </TabsContent>
+        
+        <TabsContent value="review">
+          <ScrollArea className="h-[500px] pr-4">
+            {needsReview.length === 0 ? (
+              <Alert className="rtl">
+                <AlertDescription>
+                  لا توجد أسئلة بحاجة إلى مراجعة يدوية.
+                </AlertDescription>
+              </Alert>
+            ) : (
+              needsReview.map((result, idx) => {
+                // Find the index in the original results array
+                const originalIndex = results.findIndex(r => 
+                  r.question1.text === result.question1.text && 
+                  r.matchStatus === MatchStatus.NeedsReview
+                );
+                
+                if (result.reviewQuestions && result.reviewQuestions.length > 0) {
+                  return (
+                    <ManualReviewCard
+                      key={idx}
+                      question={result.question1}
+                      reviewQuestion={result.reviewQuestions[0]}
+                      onAcceptMatch={(reviewQuestion) => onAcceptReview && onAcceptReview(originalIndex, reviewQuestion)}
+                      onRejectMatch={(reviewQuestion) => onRejectReview && onRejectReview(originalIndex, reviewQuestion)}
+                    />
+                  );
+                }
+                return null;
+              })
             )}
           </ScrollArea>
         </TabsContent>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
@@ -154,6 +153,85 @@ const Index = () => {
     }
   };
 
+  const handleAcceptReview = (matchResultIndex: number, reviewQuestion: Question) => {
+    if (results) {
+      // Create a copy of the results
+      const updatedResults = [...results];
+      
+      // Update the specific result to change it from NEEDS_REVIEW to SINGLE_MATCH
+      if (updatedResults[matchResultIndex]) {
+        updatedResults[matchResultIndex] = {
+          ...updatedResults[matchResultIndex],
+          matchStatus: MatchStatus.SingleMatch,
+          question2: reviewQuestion,
+          matchCount: 1,
+          reviewQuestions: [],
+          matchDetails: "تمت المطابقة يدويًا"
+        };
+      }
+      
+      // Update results
+      setResults(updatedResults);
+      
+      // Calculate new statistics
+      const newStats = calculateStatistics(updatedResults);
+      setStatistics(newStats);
+      
+      toast({
+        title: "تمت المطابقة",
+        description: "تم اعتبار الأسئلة متطابقة بشكل يدوي.",
+      });
+    }
+  };
+
+  const handleRejectReview = (matchResultIndex: number, reviewQuestion: Question) => {
+    if (results) {
+      // Create a copy of the results
+      const updatedResults = [...results];
+      
+      // Get the current result
+      const currentResult = updatedResults[matchResultIndex];
+      
+      if (currentResult && currentResult.reviewQuestions) {
+        // Remove the rejected question from reviewQuestions
+        const updatedReviewQuestions = currentResult.reviewQuestions.filter(
+          q => q.text !== reviewQuestion.text
+        );
+        
+        // If there are still review questions, keep it as NEEDS_REVIEW
+        if (updatedReviewQuestions.length > 0) {
+          updatedResults[matchResultIndex] = {
+            ...currentResult,
+            reviewQuestions: updatedReviewQuestions,
+            question2: updatedReviewQuestions[0],
+            matchDetails: `يحتاج إلى مراجعة يدوية (${updatedReviewQuestions.length} أسئلة محتملة)`
+          };
+        } else {
+          // If no more review questions, change to NO_MATCH
+          updatedResults[matchResultIndex] = {
+            ...currentResult,
+            matchStatus: MatchStatus.NoMatch,
+            question2: null,
+            reviewQuestions: [],
+            matchDetails: ""
+          };
+        }
+        
+        // Update results
+        setResults(updatedResults);
+        
+        // Calculate new statistics
+        const newStats = calculateStatistics(updatedResults);
+        setStatistics(newStats);
+        
+        toast({
+          title: "تم رفض المطابقة",
+          description: "تم اعتبار الأسئلة غير متطابقة.",
+        });
+      }
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <Header />
@@ -176,6 +254,8 @@ const Index = () => {
           results={results} 
           onDeleteMatch={handleDeleteMatch}
           onDeleteAllMatches={handleDeleteAllMatches}
+          onAcceptReview={handleAcceptReview}
+          onRejectReview={handleRejectReview}
         />
       )}
       

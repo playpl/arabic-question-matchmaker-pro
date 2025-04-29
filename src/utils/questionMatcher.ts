@@ -1,3 +1,4 @@
+
 import { Question, Option, MatchResult, MatchStatus, MatchStatistics } from "../types/questions";
 
 /**
@@ -13,8 +14,7 @@ function normalizeArabicText(text: string): string {
 }
 
 /**
- * Process text to ignore brackets but keep their content
- * For example, "السؤال (مهم)" becomes "السؤال مهم"
+ * Process text to ignore brackets and punctuation marks but keep their content
  */
 function processText(text: string): string {
   // First normalize Arabic text
@@ -28,6 +28,19 @@ function processText(text: string): string {
     .replace(/\]/g, ' ')  // Replace closing square brackets with space
     .replace(/\{/g, ' ')  // Replace opening curly brackets with space
     .replace(/\}/g, ' ')  // Replace closing curly brackets with space
+    .replace(/\./g, ' ')  // Replace periods with space
+    .replace(/\,/g, ' ')  // Replace commas with space
+    .replace(/\;/g, ' ')  // Replace semicolons with space
+    .replace(/\:/g, ' ')  // Replace colons with space
+    .replace(/\؟/g, ' ')  // Replace Arabic question mark with space
+    .replace(/\?/g, ' ')  // Replace question mark with space
+    .replace(/\!/g, ' ')  // Replace exclamation mark with space
+    .replace(/\-/g, ' ')  // Replace dash with space
+    .replace(/\_/g, ' ')  // Replace underscore with space
+    .replace(/\//g, ' ')  // Replace forward slash with space
+    .replace(/\\/g, ' ')  // Replace backslash with space
+    .replace(/\"/g, ' ')  // Replace double quotes with space
+    .replace(/\'/g, ' ')  // Replace single quotes with space
     .replace(/\s+/g, ' ') // Replace multiple spaces with a single space
     .trim();              // Remove leading and trailing spaces
 }
@@ -41,7 +54,7 @@ function hasSameCorrectAnswer(q1: Question, q2: Question): boolean {
   
   if (!correctOption1 || !correctOption2) return false;
   
-  // Process text to normalize and ignore brackets
+  // Process text to normalize and ignore brackets and punctuation
   const processedText1 = processText(correctOption1.text);
   const processedText2 = processText(correctOption2.text);
   
@@ -52,7 +65,7 @@ function hasSameCorrectAnswer(q1: Question, q2: Question): boolean {
  * Check if two questions have the same question text
  */
 function hasSameQuestionText(q1: Question, q2: Question): boolean {
-  // Process text to normalize and ignore brackets
+  // Process text to normalize and ignore brackets and punctuation
   const processedText1 = processText(q1.text);
   const processedText2 = processText(q2.text);
   
